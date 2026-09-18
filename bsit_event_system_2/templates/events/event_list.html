@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1>Events</h1>
+        <p class="muted">BSIT event schedule</p>
+    </div>
+    {% if request.user.is_staff or request.user.profile.role == "ORGANIZER" %}
+    <a class="btn primary" href="{% url 'events:event_create' %}">+ Create Event</a>
+    {% endif %}
+</div>
+
+<div class="grid">
+{% for event in events %}
+<div class="card event-card">
+    {% if event.image %}
+        <img src="{{ event.image.url }}" alt="{{ event.name }}">
+    {% endif %}
+    <span class="badge">{{ event.status }}</span>
+    <h2>{{ event.name }}</h2>
+    <p>{{ event.description|truncatewords:25 }}</p>
+    <p><strong>{{ event.date }}</strong> · {{ event.start_time }}–{{ event.end_time }}</p>
+    <p>{{ event.venue }}</p>
+    <a class="btn" href="{% url 'events:event_detail' event.pk %}">View Event</a>
+</div>
+{% empty %}
+<div class="card"><p>No events yet.</p></div>
+{% endfor %}
+</div>
+{% endblock %}

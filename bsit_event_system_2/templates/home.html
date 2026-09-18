@@ -1,0 +1,64 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BSIT Event Tracking System</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body class="landing-body">
+
+    <div class="landing-page">
+
+        <!-- Decorative shapes -->
+        <div class="decorations decoration-left">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="decorations decoration-right">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="landing-content">
+
+            <!-- Logo fallback: the uploaded project did not contain bsit-logo.png. -->
+            <div class="logo-container">
+                <div class="logo-mark" aria-label="BSIT">BSIT</div>
+            </div>
+
+            <!-- Title -->
+            <h1>
+                BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY<br>
+                EVENT TRACKING SYSTEM
+            </h1>
+
+            <!-- Buttons -->
+            <div class="role-buttons">
+
+                <a href="{% url 'accounts:organizer_login' %}"
+                   class="role-button">
+                    Organizer
+                </a>
+
+                <a href="{% url 'accounts:student_login' %}"
+                   class="role-button">
+                    Student
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

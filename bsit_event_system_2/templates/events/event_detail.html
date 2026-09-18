@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }}{% endblock %}
+{% block content %}
+<div class="card">
+    {% if event.image %}<img class="hero-image" src="{{ event.image.url }}" alt="{{ event.name }}">{% endif %}
+    <span class="badge">{{ event.status }}</span>
+    <h1>{{ event.name }}</h1>
+    <p>{{ event.description }}</p>
+    <div class="details">
+        <div><b>Date</b><br>{{ event.date }}</div>
+        <div><b>Time</b><br>{{ event.start_time }} – {{ event.end_time }}</div>
+        <div><b>Venue</b><br>{{ event.venue }}</div>
+        <div><b>Organizer</b><br>{{ event.organizer.get_full_name|default:event.organizer.username }}</div>
+    </div>
+
+    {% if request.user.is_staff %}
+    <a class="btn" href="{% url 'events:event_edit' event.pk %}">Edit Event</a>
+    {% endif %}
+
+    {% if event.organizer_id == request.user.id %}
+    <a class="btn primary" href="{% url 'attendance:scanner' event.pk %}">Open Scanner</a>
+    <a class="btn" href="{% url 'attendance:attendance_list' event.pk %}">Attendance List</a>
+    {% endif %}
+</div>
+{% endblock %}

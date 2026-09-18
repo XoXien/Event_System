@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Scanner - {{ event.name }}{% endblock %}
+{% block extra_head %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+<div>
+<h1>Attendance Scanner</h1>
+<p class="muted">{{ event.name }} · {{ event.date }} · {{ event.venue }}</p>
+</div>
+<a class="btn" href="{% url 'attendance:attendance_list' event.pk %}">Attendance List</a>
+</div>
+
+<div class="scanner-layout">
+<div class="card scanner-card">
+<form style="display:none;">{% csrf_token %}</form>\n<div class="scan-buttons">
+<button id="inBtn" class="btn primary active" onclick="setScanType('IN')">IN SCAN</button>
+<button id="outBtn" class="btn" onclick="setScanType('OUT')">OUT SCAN</button>
+</div>
+
+<div id="reader"></div>
+<div id="result" class="scan-result">Choose IN or OUT, then scan a student's QR.</div>
+</div>
+
+<div class="card">
+<h2>Rules</h2>
+<ul>
+<li>IN records arrival.</li>
+<li>OUT requires a valid IN.</li>
+<li>Duplicate IN is rejected.</li>
+<li>Duplicate OUT is rejected.</li>
+<li>A stamp is awarded after IN + OUT.</li>
+</ul>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const eventId = {{ event.id }};
+let scanType = "IN";
+let busy = false;
+
+function setScanType(type) {
+    scanType = type;
+    document.getElementById("inBtn").classList.toggle("active", type === "IN");
+    document.getElementById("outBtn").classList.toggle("active", type === "OUT");
+    setResult("Ready for " + type + " scan.", "");
+}
+
+function setResult(message, kind) {
+    const box = document.getElementById("result");
+    box.textContent = message;
+    box.className = "scan-result " + (kind || "");
+}
+
+async function submitToken(token) {
+    if (busy) return;
+    busy = true;
+
+    const csrf = document.querySelector("[name=csrfmiddlewaretoken]");
+    const body = new URLSearchParams();
+    body.append("token", token);
+    body.append("scan_type", scanType);
+    if (csrf) body.append("csrfmiddlewaretoken", csrf.value);
+
+    try {
+        const response = await fetch(`/attendance/event/${eventId}/scan/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: body.toString()
+        });
+        const data = await response.json();
+        setResult(data.message || "Scan processed.", data.ok ? "success" : "error");
+    } catch (e) {
+        setResult("Could not contact the server.", "error");
+    } finally {
+        setTimeout(() => busy = false, 1200);
+    }
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+}
+
+const scanner = new Html5Qrcode("reader");
+scanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 260, height: 260 } },
+    decodedText => submitToken(decodedText),
+    () => {}
+).catch(err => {
+    setResult("Camera could not start. Allow camera permission and use HTTPS/localhost.", "error");
+});
+</script>
+{% endblock %}

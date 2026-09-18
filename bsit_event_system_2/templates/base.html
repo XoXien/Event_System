@@ -1,0 +1,62 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        BSIT Event Organizer System
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet"
+          href="{% static 'css/style.css' %}">
+
+    {% block extra_head %}{% endblock %}
+
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <a href="{% url 'home' %}">
+            BSIT EVENTS
+        </a>
+
+        <div>
+
+            {% if request.user.is_authenticated %}
+
+                <a href="{% url 'accounts:logout' %}">
+                    Logout
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </nav>
+
+
+    <!-- PAGE CONTENT -->
+
+    {% block content %}
+    {% endblock %}
+
+
+    <!-- PAGE JAVASCRIPT -->
+
+    {% block scripts %}
+    {% endblock %}
+
+</body>
+
+</html>

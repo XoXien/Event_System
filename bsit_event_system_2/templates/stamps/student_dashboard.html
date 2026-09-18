@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="student-header">
+
+    <div>
+        <span class="badge">STUDENT</span>
+
+        <h1>
+            Hello, {{ profile.display_name }}
+        </h1>
+
+        <p class="muted">
+            {{ profile.student_id }}
+            ·
+            {{ profile.program }}
+            ·
+            {{ profile.year_level }}
+        </p>
+    </div>
+
+    <a
+        class="btn"
+        href="{% url 'accounts:profile' %}"
+    >
+        Edit Profile
+    </a>
+
+</div>
+
+
+<div class="dashboard-grid">
+
+    <!-- ============================= -->
+<!-- DYNAMIC QR -->
+<!-- ============================= -->
+
+<div class="card qr-card">
+
+    <h2>My Dynamic QR</h2>
+
+    <p class="muted">
+        Your QR code automatically refreshes every 25 seconds.
+    </p>
+
+    <div class="qr-wrapper">
+
+        <img
+            id="student-qr"
+            class="qr-image"
+            src="{% url 'stamps:student_qr' %}"
+            alt="Student Dynamic QR Code"
+        >
+        
+
+        <div id="qr-loading" class="qr-loading">
+            Loading QR...
+        </div>
+
+    </div>
+
+    <div class="timer">
+        Refresh in
+        <span id="countdown">25</span>
+        seconds
+    </div>
+
+    <div
+        id="qr-error"
+        class="qr-error"
+        style="display: none;"
+    >
+        Unable to load QR code.
+    </div>
+
+</div>
+
+    <!-- ============================= -->
+    <!-- EVENT CARD -->
+    <!-- ============================= -->
+
+    <div class="card">
+
+        <div class="page-heading">
+
+            <div>
+
+                <h2>
+                    My Event Card
+                </h2>
+
+                <p class="muted">
+                    Complete an event to earn its stamp.
+                </p>
+
+            </div>
+
+            <strong>
+                {{ stamps|length }}
+                stamp{{ stamps|length|pluralize }}
+            </strong>
+
+        </div>
+
+
+        <div class="stamp-grid">
+
+            {% for stamp in stamps %}
+
+                <div class="stamp">
+
+                    {% if stamp.event.stamp_design %}
+
+                        <img
+                            src="{{ stamp.event.stamp_design.url }}"
+                            alt="{{ stamp.event.name }}"
+                        >
+
+                    {% else %}
+
+                        <div class="stamp-placeholder">
+                            ★
+                        </div>
+
+                    {% endif %}
+
+                    <strong>
+                        {{ stamp.event.name }}
+                    </strong>
+
+                    <small>
+                        {{ stamp.earned_at|date:"M d, Y" }}
+                    </small>
+
+                </div>
+
+            {% empty %}
+
+                <p class="muted">
+                    No stamps yet. Attend an event and
+                    complete both IN and OUT scans.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const qrImage = document.getElementById("student-qr");
+    const countdown = document.getElementById("countdown");
+    const loading = document.getElementById("qr-loading");
+    const errorBox = document.getElementById("qr-error");
+    const qrUrl = "{% url 'stamps:student_qr' %}";
+
+    let expiresAt = 0;
+    let currentObjectUrl = null;
+    let refreshing = false;
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = "block";
+        loading.style.display = "none";
+    }
+
+    async function refreshQR() {
+        if (refreshing) return;
+        refreshing = true;
+        errorBox.style.display = "none";
+        loading.style.display = "block";
+
+        try {
+            const response = await fetch(qrUrl + "?t=" + Date.now(), {
+                cache: "no-store",
+                credentials: "same-origin"
+            });
+
+            if (!response.ok) {
+                throw new Error("QR request failed.");
+            }
+
+            const blob = await response.blob();
+            const serverExpiry = Number(
+                response.headers.get("X-QR-Expires-At")
+            );
+
+            if (!serverExpiry) {
+                throw new Error("QR expiry information missing.");
+            }
+
+            const nextObjectUrl = URL.createObjectURL(blob);
+
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+            }
+
+            currentObjectUrl = nextObjectUrl;
+            qrImage.src = currentObjectUrl;
+            expiresAt = serverExpiry * 1000;
+            loading.style.display = "none";
+        } catch (error) {
+            showError("Unable to load QR code. Please refresh the page.");
+        } finally {
+            refreshing = false;
+        }
+    }
+
+    function updateCountdown() {
+        if (!expiresAt) return;
+
+        const remaining = Math.max(
+            0,
+            Math.ceil((expiresAt - Date.now()) / 1000)
+        );
+
+        countdown.textContent = remaining;
+
+        if (remaining <= 0 && !refreshing) {
+            refreshQR();
+        }
+    }
+
+    refreshQR();
+    setInterval(updateCountdown, 250);
+
+    window.addEventListener("beforeunload", function () {
+        if (currentObjectUrl) {
+            URL.revokeObjectURL(currentObjectUrl);
+        }
+    });
+});
+</script>
+{% endblock %}

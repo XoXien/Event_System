@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}
+Organizer Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="dashboard-header">
+
+        <div>
+
+            <h1>Organizer Dashboard</h1>
+
+            <p style="color: rgba(255,255,255,.65);">
+                Welcome, {{ request.user.get_full_name|default:request.user.username }}
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'events:event_create' %}"
+            class="btn"
+        >
+            + Create Event
+        </a>
+
+    </div>
+
+
+    <div class="page-title">
+
+        <h2>My Events</h2>
+
+        <p>
+            Manage your events and monitor attendance.
+        </p>
+
+    </div>
+
+
+    {% if events %}
+
+        <div class="event-grid">
+
+            {% for event in events %}
+
+                <div class="event-card">
+
+                    {% if event.image %}
+
+                        <img
+                            src="{{ event.image.url }}"
+                            alt="{{ event.name }}"
+                        >
+
+                    {% endif %}
+
+                    <div class="event-card-content">
+
+                        <h3>
+                            {{ event.name }}
+                        </h3>
+
+                        <p>
+                            📅 {{ event.date }}
+                        </p>
+
+                        <p>
+                            🕐 {{ event.start_time }}
+                            -
+                            {{ event.end_time }}
+                        </p>
+
+                        <p>
+                            📍 {{ event.venue }}
+                        </p>
+
+                        <p>
+                            Status:
+                            <span class="status">
+                                {{ event.status }}
+                            </span>
+                        </p>
+
+                        <br>
+
+                        <a
+                            href="{% url 'events:event_detail' event.pk %}"
+                            class="btn"
+                        >
+                            View Event
+                        </a>
+
+                        <a
+                            href="{% url 'events:event_edit' event.pk %}"
+                            class="btn"
+                        >
+                            Edit
+                        </a>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <h2>No Events Yet</h2>
+
+            <p>
+                You haven't created any events yet.
+            </p>
+
+            <br>
+
+            <a
+                href="{% url 'events:event_create' %}"
+                class="btn"
+            >
+                + Create Your First Event
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

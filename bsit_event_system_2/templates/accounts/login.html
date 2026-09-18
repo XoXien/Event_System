@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <div class="logo-circle">B</div>
+    <h1>BSIT Events</h1>
+    <p class="muted">Event attendance and digital stamps</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <label>Username</label>
+        {{ form.username }}
+        <label>Password</label>
+        {{ form.password }}
+        <button class="btn primary" type="submit">Login</button>
+        <p class="auth-footer">
+    Don't have a student account?
+    <a href="{% url 'accounts:register_student' %}">
+        Register as Student
+    </a>
+</p>
+    </form>
+</div>
+{% endblock %}
