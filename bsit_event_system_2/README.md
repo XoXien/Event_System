@@ -57,15 +57,3 @@ Camera access normally requires HTTPS in production. `localhost`/`127.0.0.1` is 
 ## Dynamic QR
 
 The student QR contains a signed temporary token. The token is valid for 25 seconds and does not directly expose the student ID. The server verifies the signature and expiration before accepting a scan. The student page reads the server-provided expiry timestamp, so the visible countdown and QR refresh stay synchronized even when the page is opened partway through a 25-second window.
-
-## Production notes
-
-Before deployment:
-
-- Set `DEBUG=False`
-- Configure `ALLOWED_HOSTS`
-- Use PostgreSQL
-- Set a strong `SECRET_KEY`
-- Serve static files properly
-- Use HTTPS so camera scanning works reliably
-- Consider rate limiting the scan endpoint
